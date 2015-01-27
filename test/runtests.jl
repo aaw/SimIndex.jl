@@ -1,5 +1,7 @@
-using SimIndex
-using Base.Test
+tests = ["tests"]
 
-# write your own tests here
-@test 1 == 1
+for t in tests
+    fp = string(t, ".jl")
+    println("* running $fp ...")
+    include(fp)
+end
