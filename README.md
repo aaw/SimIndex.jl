@@ -1,4 +1,4 @@
-# SimIndex
+# SimIndex.jl
 
 [![Build Status](https://travis-ci.org/aaw/SimIndex.jl.svg?branch=master)](https://travis-ci.org/aaw/SimIndex.jl)
 
@@ -29,8 +29,9 @@ junks (3.0)
 
 Building such an index by exhaustively comparing each word with all other words
 would take over 2.5 billion distance calculations. SimIndex uses a
-[well-known heuristic][] to build a good approximation to the exact index that
-avoids exhaustively computing the distance between each pair.
+[well-known heuristic](http://arvindn.livejournal.com/93678.html) to build a
+good approximation to the exact index that avoids exhaustively computing the
+distance between each pair.
 
 The heuristic works roughly like this: SimIndex maintains a neighbor list of
 the k closest items seen for each item in the index. Initially, these lists are
@@ -45,7 +46,7 @@ of `u`'s neighbors.
 
 In practice, this process very quickly converges to a near-optimal index.
 SimIndex uses a convergence criterion similar to the one proposed in "[Efficient
-K-Nearest Neighbor Graph Construction for Generic Similarity Measures][]" by
+K-Nearest Neighbor Graph Construction for Generic Similarity Measures](http://www.cs.princeton.edu/cass/papers/www11.pdf)" by
 Dong, Charikar, and Li: run a fixed number of iterations per epoch and count the
 number of times a neighbor list is updated. When this number falls
 below a threshold, stop the compilation.
@@ -56,7 +57,8 @@ below a threshold, stop the compilation.
 julia> Pkg.clone("git://github.com/aaw/SimIndex.jl.git")
 ```
 
-SimIndex depends on an unreleased patch to the [ProgressMeter package][]. You
+SimIndex depends on an unreleased patch to the
+[ProgressMeter package](https://github.com/timholy/ProgressMeter.jl). You
 can manually pull the latest into your environment by changing directories to
 the directory where package is installed:
 
@@ -183,7 +185,3 @@ julia> SimIndex.test_error_ratio(si, 100)
 
 If the error ratio isn't good enough, just compile the index again or compile it
 with a smaller delta value.
-
-[well-known heuristic] http://arvindn.livejournal.com/93678.html
-[Efficient K-Nearest Neighbor Graph Construction for Generic Similarity Measures] http://www.cs.princeton.edu/cass/papers/www11.pdf
-[ProgressMeter package] https://github.com/timholy/ProgressMeter.jl
