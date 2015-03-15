@@ -57,23 +57,7 @@ below a threshold, stop the compilation.
 julia> Pkg.clone("git://github.com/aaw/SimIndex.jl.git")
 ```
 
-SimIndex depends on an unreleased patch to the
-[ProgressMeter package](https://github.com/timholy/ProgressMeter.jl). You
-can manually pull the latest into your environment by changing directories to
-the directory where package is installed:
-
-```
-julia> cd(Pkg.dir("ProgressMeter"))
-```
-
-Next, type a semicolon at the Julia prompt to switch to shell mode, then run
-a `git pull` to pull the latest from `master`:
-
-```
-shell> git pull origin master
-```
-
-Finally, run the tests to make sure everything is set up okay:
+### Running tests
 
 ```
 julia> Pkg.test("SimIndex")
