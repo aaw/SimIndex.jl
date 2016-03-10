@@ -9,7 +9,7 @@ import SimIndex
 
 function load_words()
     wordfile = "/usr/share/dict/words"
-    words = String[]
+    words = ASCIIString[]
     open(wordfile) do f
         for word in eachline(f)
             word = strip(word)
@@ -27,7 +27,7 @@ function levenshtein(s1, s2)
     a, b = collect(s1), collect(s2)
     m = length(a)
     n = length(b)
-    d = Array(Int, m+1, n+1)
+    d = Array(Float64, m+1, n+1)
 
     d[1:m+1, 1] = 0:m
     d[1, 1:n+1] = 0:n

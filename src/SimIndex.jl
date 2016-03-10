@@ -14,7 +14,7 @@ type Index{KeyType, ValueType}
     distance::Function
     items::Dict{KeyType, ValueType}
     index::Dict{KeyType, PriorityQueue{KeyType, Float64}}
-    compiled_index::Dict{KeyType, Array{(KeyType, Float64), 1}}
+    compiled_index::Dict{KeyType, Array{Pair{KeyType, Float64}, 1}}
     dirty::Bool  # Have elements been pushed to the index since a successful compile?
 end
 
@@ -25,7 +25,7 @@ function Index(items; k=10, d=Distances.euclidean)
     KeyType = eltype(keys(items))
     ValueType = eltype(values(items))
     index = Dict{KeyType, PriorityQueue{KeyType, Float64}}()
-    compiled_index = Dict{KeyType, Array{(KeyType, Float64), 1}}()
+    compiled_index = Dict{KeyType, Array{Pair{KeyType, Float64}, 1}}()
     si = Index{KeyType, ValueType}(k, 2 * k, d, items, index, compiled_index, true)
     compile!(si)
 end
@@ -57,14 +57,14 @@ function compile!(s::Index, delta::Float64=0.05)
     for (v, val) in s.items
         if recompile && haskey(s.compiled_index, v)
             q = [x => d for (x,d) in s.compiled_index[v][1:s.k]]
-            s.index[v] = PriorityQueue{KeyType, Float64}(q, Base.Sort.Reverse)
+            s.index[v] = PriorityQueue(q, Base.Sort.Reverse)
             for x in sample(vs, s.a - s.k, union(Set(keys(q)), Set([v])))
                 enqueue!(s.index[v], x, s.distance(val, s.items[x]))
             end
         else
             sampled = sample(vs, s.a, Set([v]))
-            s.index[v] = PriorityQueue{KeyType, Float64}(
-              [x => s.distance(val, s.items[x]) for x in sampled],
+            s.index[v] = PriorityQueue(
+              [x => s.distance(val, s.items[x])::Float64 for x in sampled],
               Base.Sort.Reverse)
         end
         next!(p)
@@ -72,7 +72,7 @@ function compile!(s::Index, delta::Float64=0.05)
     empty!(s.compiled_index)
 
     res = 1.01  # Decrease res to have more granular progress displayed.
-    steps = int(ceil(log(res, 2/delta)))  # Number of steps in progress.
+    steps = round(Int, ceil(log(res, 2/delta)))  # Number of steps in progress.
     thres = 2.0  # Next milestone for displaying progress.
     ratio = 2.0  # Current progress (c / nvs)
     p = Progress(steps, 1, "Compiling index...")
@@ -140,7 +140,7 @@ end
 function generate_compiled_index!(s::Index)
     KeyType = eltype(keys(s.index))
     for (key, vals) in s.index
-        xs = (KeyType, Float64)[]
+        xs = Pair{KeyType, Float64}[]
         while true
             try
                 push!(xs, peek(vals))
@@ -161,9 +161,9 @@ function k_nearest_neighbors(s::Index, key; k=s.k)
     if s.dirty
         error("Index needs to be compiled.")
     end
-    vals = get(s.compiled_index, key, None)
-    if vals == None
-        return None
+    vals = get(s.compiled_index, key, Union{})
+    if vals == Union{}
+        return Union{}
     end
     return vals[1:min(length(vals), k)]
 end
@@ -175,7 +175,7 @@ function test_error_ratio(s::Index, n=50)
     for i=1:n
         k = ks[rand(1:end)]
         v = s.items[k]
-        q = PriorityQueue{KeyType, Float64}(Base.Sort.Reverse)
+        q = PriorityQueue(Dict{KeyType, Float64}(), Base.Sort.Reverse)
         for (k2, v2) in s.items
             if k2 == k
                 continue
@@ -187,7 +187,7 @@ function test_error_ratio(s::Index, n=50)
             end
         end
         # Accumulate key, distance pairs
-        xs = (KeyType, Float64)[]
+        xs = Pair{KeyType, Float64}[]
         while true
             try
                 push!(xs, peek(q))
@@ -208,7 +208,7 @@ function error_ratio(actual, approx)
     end
     xs = Float64[]
     for i=1:length(actual)
-        push!(xs, (approx[i][2] + eps()) / (actual[i][2] + eps()))
+        push!(xs, (approx[i].second + eps()) / (actual[i].second + eps()))
     end
     mean(xs)
 end
